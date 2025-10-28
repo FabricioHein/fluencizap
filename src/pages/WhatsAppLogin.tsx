@@ -1,45 +1,67 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Smartphone, ArrowRight } from 'lucide-react';
-import { mockAuth } from '../services/mockAuth';
+import { firebaseService } from '../services/firebaseService';
 
 export default function WhatsAppLogin() {
   const navigate = useNavigate();
   const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'phone' | 'verify'>('phone');
   const [code, setCode] = useState('');
 
-  const mockUsers = mockAuth.getMockUsers().filter(u => u.role === 'student');
-
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    const user = mockAuth.loginWithPhone(phone);
-    if (user) {
-      setStep('verify');
-    } else {
-      setError('Número não encontrado. Tente um dos números disponíveis abaixo.');
+    try {
+      const formattedPhone = phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`;
+      await firebaseService.initializeRecaptcha('recaptcha-container');
+      const success = await firebaseService.sendVerificationCode(formattedPhone);
+
+      if (success) {
+        setStep('verify');
+      } else {
+        setError('Erro ao enviar código. Tente novamente.');
+      }
+    } catch (err) {
+      console.error('Error sending code:', err);
+      setError('Erro ao enviar código. Verifique o número e tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCodeSubmit = (e: React.FormEvent) => {
+  const handleCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
 
-    if (code === '1234') {
-      const user = mockAuth.loginWithPhone(phone);
+    try {
+      const user = await firebaseService.verifyCode(code);
+
       if (user) {
+        if (!user.name && name) {
+          await firebaseService.createUser({ ...user, name });
+        }
         navigate('/student/dashboard');
+      } else {
+        setError('Código inválido. Tente novamente.');
       }
-    } else {
-      setError('Código inválido. Use: 1234');
+    } catch (err) {
+      console.error('Error verifying code:', err);
+      setError('Código inválido. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center px-4">
+      <div id="recaptcha-container"></div>
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -66,6 +88,21 @@ export default function WhatsAppLogin() {
               )}
 
               <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Nome Completo
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                  placeholder="Seu nome"
+                  required
+                />
+              </div>
+
+              <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Número de WhatsApp
                 </label>
@@ -81,14 +118,18 @@ export default function WhatsAppLogin() {
                     required
                   />
                 </div>
+                <p className="mt-1 text-xs text-gray-500">
+                  Formato: +55 (código do país) seguido do DDD e número
+                </p>
               </div>
 
               <button
                 type="submit"
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                disabled={loading}
+                className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Continuar
-                <ArrowRight className="h-5 w-5" />
+                {loading ? 'Enviando...' : 'Continuar'}
+                {!loading && <ArrowRight className="h-5 w-5" />}
               </button>
             </form>
           ) : (
@@ -117,8 +158,8 @@ export default function WhatsAppLogin() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all text-center text-2xl tracking-widest"
-                  placeholder="1234"
-                  maxLength={4}
+                  placeholder="123456"
+                  maxLength={6}
                   required
                 />
               </div>
@@ -126,13 +167,18 @@ export default function WhatsAppLogin() {
               <div className="space-y-3">
                 <button
                   type="submit"
-                  className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg"
+                  disabled={loading}
+                  className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Verificar
+                  {loading ? 'Verificando...' : 'Verificar'}
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStep('phone')}
+                  onClick={() => {
+                    setStep('phone');
+                    setCode('');
+                    setError('');
+                  }}
                   className="w-full text-gray-600 hover:text-gray-900 py-2 text-sm"
                 >
                   Voltar
@@ -140,25 +186,6 @@ export default function WhatsAppLogin() {
               </div>
             </form>
           )}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mt-6">
-          <p className="text-sm font-medium text-gray-900 mb-3">Números de teste disponíveis:</p>
-          <div className="space-y-2">
-            {mockUsers.map((user) => (
-              <button
-                key={user.id}
-                onClick={() => setPhone(user.phone)}
-                className="w-full text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                <p className="text-xs text-gray-600">{user.phone}</p>
-              </button>
-            ))}
-          </div>
-          <p className="text-xs text-gray-500 mt-3">
-            Código de verificação: <span className="font-mono font-bold">1234</span>
-          </p>
         </div>
 
         <div className="text-center mt-6">
