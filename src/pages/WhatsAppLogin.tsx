@@ -29,7 +29,10 @@ export default function WhatsAppLogin() {
     setError('');
 
     if (code === '1234') {
-      navigate('/student/dashboard');
+      const user = mockAuth.loginWithPhone(phone);
+      if (user) {
+        navigate('/student/dashboard');
+      }
     } else {
       setError('Código inválido. Use: 1234');
     }

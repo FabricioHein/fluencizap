@@ -3,15 +3,25 @@ import LandingPage from './pages/LandingPage';
 import AdminLogin from './pages/AdminLogin';
 import WhatsAppLogin from './pages/WhatsAppLogin';
 import AdminLayout from './components/AdminLayout';
+import StudentLayout from './components/StudentLayout';
 import AdminDashboard from './pages/AdminDashboard';
 import StudentsPage from './pages/StudentsPage';
 import ContentPage from './pages/ContentPage';
 import WhatsAppPage from './pages/WhatsAppPage';
+import StudentDashboard from './pages/StudentDashboard';
+import StudentSettings from './pages/StudentSettings';
 import { mockAuth } from './services/mockAuth';
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const isAuthenticated = mockAuth.isAuthenticated();
-  return isAuthenticated ? <>{children}</> : <Navigate to="/admin" replace />;
+function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
+  const user = mockAuth.getCurrentUser();
+  const isAdmin = user?.role === 'admin';
+  return isAdmin ? <>{children}</> : <Navigate to="/admin" replace />;
+}
+
+function ProtectedStudentRoute({ children }: { children: React.ReactNode }) {
+  const user = mockAuth.getCurrentUser();
+  const isStudent = user?.role === 'student';
+  return isStudent ? <>{children}</> : <Navigate to="/whatsapp-login" replace />;
 }
 
 function App() {
@@ -24,41 +34,61 @@ function App() {
         <Route
           path="/admin/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedAdminRoute>
               <AdminLayout>
                 <AdminDashboard />
               </AdminLayout>
-            </ProtectedRoute>
+            </ProtectedAdminRoute>
           }
         />
         <Route
           path="/admin/students"
           element={
-            <ProtectedRoute>
+            <ProtectedAdminRoute>
               <AdminLayout>
                 <StudentsPage />
               </AdminLayout>
-            </ProtectedRoute>
+            </ProtectedAdminRoute>
           }
         />
         <Route
           path="/admin/content"
           element={
-            <ProtectedRoute>
+            <ProtectedAdminRoute>
               <AdminLayout>
                 <ContentPage />
               </AdminLayout>
-            </ProtectedRoute>
+            </ProtectedAdminRoute>
           }
         />
         <Route
           path="/admin/whatsapp"
           element={
-            <ProtectedRoute>
+            <ProtectedAdminRoute>
               <AdminLayout>
                 <WhatsAppPage />
               </AdminLayout>
-            </ProtectedRoute>
+            </ProtectedAdminRoute>
+          }
+        />
+        <Route
+          path="/student/dashboard"
+          element={
+            <ProtectedStudentRoute>
+              <StudentLayout>
+                <StudentDashboard />
+              </StudentLayout>
+            </ProtectedStudentRoute>
+          }
+        />
+        <Route
+          path="/student/settings"
+          element={
+            <ProtectedStudentRoute>
+              <StudentLayout>
+                <StudentSettings />
+              </StudentLayout>
+            </ProtectedStudentRoute>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />
