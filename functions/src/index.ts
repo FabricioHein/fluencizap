@@ -118,7 +118,7 @@ export const cleanupOldAudios = functions.pubsub
 
       for (const file of files) {
         const [metadata] = await file.getMetadata();
-        const createdTime = new Date(metadata.timeCreated).getTime();
+        const createdTime = new Date(metadata.timeCreated || Date.now()).getTime();
 
         // Deleta arquivos com mais de 7 dias
         if (createdTime < sevenDaysAgo) {

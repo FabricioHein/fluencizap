@@ -8,14 +8,6 @@ import { ProgressModel } from "../models/Progress";
 import { User } from "../types";
 import * as logger from "firebase-functions/logger";
 
-interface TrainingStep {
-  step: string;
-  question: string;
-  answer: string;
-  correct: boolean;
-  timestamp: Date;
-}
-
 export class AiTrainingService {
   private userModel: UserModel;
   private progressModel: ProgressModel;
