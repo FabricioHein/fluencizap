@@ -10,6 +10,7 @@ import ContentPage from './pages/ContentPage';
 import WhatsAppPage from './pages/WhatsAppPage';
 import StudentDashboard from './pages/StudentDashboard';
 import StudentSettings from './pages/StudentSettings';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { mockAuth } from './services/mockAuth';
 
 function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
@@ -19,15 +20,15 @@ function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedStudentRoute({ children }: { children: React.ReactNode }) {
-  const user = mockAuth.getCurrentUser();
-  const isStudent = user?.role === 'student';
-  return isStudent ? <>{children}</> : <Navigate to="/whatsapp-login" replace />;
+  const { currentUser } = useAuth();
+  return currentUser ? <>{children}</> : <Navigate to="/whatsapp-login" replace />;
 }
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <AuthProvider>
+      <Router>
+        <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/whatsapp-login" element={<WhatsAppLogin />} />
@@ -94,6 +95,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
+    </AuthProvider>
   );
 }
 
