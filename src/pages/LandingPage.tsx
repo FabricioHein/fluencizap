@@ -30,9 +30,7 @@ export default function LandingPage() {
               Pratique inglês todos os dias diretamente no seu WhatsApp. Lições personalizadas, exercícios interativos e feedback instantâneo.
             </p>
             <a
-              href="https://wa.me/5511999999999?text=Quero%20aprender%20inglês"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/whatsapp-login"
               className="inline-flex items-center gap-2 bg-green-600 text-white px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl"
             >
               <MessageCircle className="h-6 w-6" />
@@ -234,9 +232,7 @@ export default function LandingPage() {
             Comece hoje mesmo e veja resultados em semanas.
           </p>
           <a
-            href="https://wa.me/5511999999999?text=Quero%20aprender%20inglês"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="/whatsapp-login"
             className="inline-flex items-center gap-2 bg-white text-green-600 px-8 py-4 rounded-full text-lg font-semibold hover:bg-green-50 transition-colors shadow-lg hover:shadow-xl"
           >
             <MessageCircle className="h-6 w-6" />

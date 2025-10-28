@@ -1,13 +1,24 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageCircle, Lock, Mail } from 'lucide-react';
+import { mockAuth } from '../services/mockAuth';
 
 export default function AdminLogin() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
+    setError('');
+
+    const user = mockAuth.loginWithEmail(email, password);
+    if (user) {
+      navigate('/admin/dashboard');
+    } else {
+      setError('Email ou senha inválidos. Use: admin@englishbot.com / admin123');
+    }
   };
 
   return (
@@ -24,6 +35,12 @@ export default function AdminLogin() {
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                {error}
+              </div>
+            )}
+
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email
@@ -83,6 +100,9 @@ export default function AdminLogin() {
         </div>
 
         <div className="text-center mt-6">
+          <p className="text-xs text-gray-500 mb-2">
+            Credenciais de teste: admin@englishbot.com / admin123
+          </p>
           <a href="/" className="text-sm text-gray-600 hover:text-green-600">
             ← Voltar para o site
           </a>

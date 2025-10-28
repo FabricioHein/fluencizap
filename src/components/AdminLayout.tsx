@@ -1,6 +1,7 @@
 import { ReactNode } from 'react';
 import { MessageCircle, LayoutDashboard, Users, BookOpen, MessageSquare, Settings, LogOut } from 'lucide-react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { mockAuth } from '../services/mockAuth';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -8,6 +9,8 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const currentUser = mockAuth.getCurrentUser();
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
@@ -49,8 +52,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           })}
         </nav>
 
-        <div className="p-4 border-t border-gray-200">
-          <button className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 w-full transition-colors">
+        <div className="p-4 border-t border-gray-200 space-y-3">
+          {currentUser && (
+            <div className="px-4 py-2 bg-gray-50 rounded-lg">
+              <p className="text-xs text-gray-500">Conectado como</p>
+              <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
+              <p className="text-xs text-gray-600">{currentUser.phone}</p>
+            </div>
+          )}
+          <button
+            onClick={() => {
+              mockAuth.logout();
+              navigate('/admin');
+            }}
+            className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-50 w-full transition-colors"
+          >
             <LogOut className="h-5 w-5" />
             Sair
           </button>
