@@ -5,7 +5,7 @@ import { TextToSpeechService } from "./TextToSpeechService";
 import { WhatsappService } from "./WhatsappService";
 import { UserModel } from "../models/User";
 import { ProgressModel } from "../models/Progress";
-import { User } from "../types";
+import { User, Progress } from "../types";
 import * as logger from "firebase-functions/logger";
 
 export class AiTrainingService {
@@ -195,7 +195,7 @@ Vamos começar! 🚀`;
   private async evaluateWithAI(
     phoneNumber: string,
     user: User,
-    progress: any,
+    progress: Progress,
     answer: string
   ): Promise<void> {
     try {
@@ -351,7 +351,7 @@ Ou simplesmente responda as perguntas! 😊`;
   private async evaluateStatically(
     phoneNumber: string,
     user: User,
-    progress: any,
+    progress: Progress,
     answer: string
   ): Promise<void> {
     const isCorrect = answer.toLowerCase().includes("i am a developer");
@@ -381,6 +381,13 @@ Ou simplesmente responda as perguntas! 😊`;
 
   private extractExpectedAnswer(question: string): string | null {
     // Simplified extraction - can be enhanced with regex or AI
+    // Example: extract answer from question if format is "Translate: word -> ?"
+    if (question.includes("->")) {
+      const parts = question.split("->");
+      if (parts.length > 1) {
+        return parts[1].trim().replace("?", "").trim();
+      }
+    }
     return null;
   }
 

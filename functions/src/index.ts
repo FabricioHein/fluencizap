@@ -104,7 +104,7 @@ export const health = functions.https.onRequest((req, res) => {
 export const cleanupOldAudios = functions.pubsub
   .schedule("0 2 * * *")
   .timeZone("America/Sao_Paulo")
-  .onRun(async (context) => {
+  .onRun(async () => {
     try {
       logger.info("Starting audio cleanup");
 
