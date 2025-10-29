@@ -1,12 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageCircle, Smartphone, ArrowRight } from 'lucide-react';
+import { MessageCircle, Smartphone, ArrowRight, Globe } from 'lucide-react';
 import { firebaseService } from '../services/firebaseService';
+
+const countryCodes = [
+  { code: '+55', country: 'Brasil', flag: '🇧🇷' },
+  { code: '+1', country: 'EUA/Canadá', flag: '🇺🇸' },
+  { code: '+44', country: 'Reino Unido', flag: '🇬🇧' },
+  { code: '+351', country: 'Portugal', flag: '🇵🇹' },
+  { code: '+34', country: 'Espanha', flag: '🇪🇸' },
+  { code: '+33', country: 'França', flag: '🇫🇷' },
+  { code: '+49', country: 'Alemanha', flag: '🇩🇪' },
+  { code: '+39', country: 'Itália', flag: '🇮🇹' },
+  { code: '+52', country: 'México', flag: '🇲🇽' },
+  { code: '+54', country: 'Argentina', flag: '🇦🇷' },
+];
 
 export default function WhatsAppLogin() {
   const navigate = useNavigate();
+  const [countryCode, setCountryCode] = useState('+55');
   const [phone, setPhone] = useState('');
-  const [name, setName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<'phone' | 'verify'>('phone');
@@ -18,7 +31,7 @@ export default function WhatsAppLogin() {
     setLoading(true);
 
     try {
-      const formattedPhone = phone.startsWith('+') ? phone : `+55${phone.replace(/\D/g, '')}`;
+      const formattedPhone = `${countryCode}${phone.replace(/\D/g, '')}`;
       await firebaseService.initializeRecaptcha('recaptcha-container');
       const success = await firebaseService.sendVerificationCode(formattedPhone);
 
@@ -44,9 +57,6 @@ export default function WhatsAppLogin() {
       const user = await firebaseService.verifyCode(code);
 
       if (user) {
-        if (!user.name && name) {
-          await firebaseService.createUser({ ...user, name });
-        }
         navigate('/student/dashboard');
       } else {
         setError('Código inválido. Tente novamente.');
@@ -88,38 +98,49 @@ export default function WhatsAppLogin() {
               )}
 
               <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Nome Completo
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700 mb-2">
+                  País
                 </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Seu nome"
-                  required
-                />
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                  <select
+                    id="country"
+                    value={countryCode}
+                    onChange={(e) => setCountryCode(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all appearance-none bg-white"
+                  >
+                    {countryCodes.map((country) => (
+                      <option key={country.code} value={country.code}>
+                        {country.flag} {country.country} ({country.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
                   Número de WhatsApp
                 </label>
-                <div className="relative">
-                  <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
-                    placeholder="+55 11 99999-1111"
-                    required
-                  />
+                <div className="flex gap-3">
+                  <div className="flex items-center justify-center px-4 py-3 border border-gray-300 rounded-lg bg-gray-50 font-semibold text-gray-700 min-w-[80px]">
+                    {countryCode}
+                  </div>
+                  <div className="relative flex-1">
+                    <Smartphone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none transition-all"
+                      placeholder="11 99999-1111"
+                      required
+                    />
+                  </div>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Formato: +55 (código do país) seguido do DDD e número
+                <p className="mt-2 text-xs text-gray-500">
+                  Digite apenas o número sem espaços ou caracteres especiais
                 </p>
               </div>
 
@@ -143,7 +164,7 @@ export default function WhatsAppLogin() {
               <div className="text-center mb-6">
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
                   <p className="text-sm text-green-700">
-                    Código enviado para <span className="font-medium">{phone}</span>
+                    Código enviado para <span className="font-medium">{countryCode} {phone}</span>
                   </p>
                 </div>
               </div>
